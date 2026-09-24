@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qrcreate-app-v3';
+const CACHE_NAME = 'qrcreate-app-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

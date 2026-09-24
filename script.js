@@ -1000,16 +1000,31 @@ function initScannerModal() {
     }
 
     function decodeImageFile(file) {
+        showToast("Processing code... ⚡", "info");
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
+                // Optimize camera photos: downscale to max 1000px for instant 50ms decoding
+                const maxDim = 1000;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) {
+                        h = Math.round((h * maxDim) / w);
+                        w = maxDim;
+                    } else {
+                        w = Math.round((w * maxDim) / h);
+                        h = maxDim;
+                    }
+                }
+
                 const canvas = document.createElement("canvas");
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = w;
+                canvas.height = h;
                 const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, w, h);
+                const imageData = ctx.getImageData(0, 0, w, h);
 
                 if (window.jsQR) {
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
@@ -1022,7 +1037,7 @@ function initScannerModal() {
                 // Check BarcodeDetector API if supported
                 if ("BarcodeDetector" in window) {
                     const detector = new BarcodeDetector();
-                    detector.detect(img)
+                    detector.detect(canvas)
                         .then(barcodes => {
                             if (barcodes.length) {
                                 displayScanResult(barcodes[0].rawValue, barcodes[0].format);
@@ -1104,9 +1119,13 @@ function initScannerModal() {
 
     function displayScanResult(data, format) {
         resultBox.hidden = false;
+        resultBox.style.display = "block";
         resultText.value = data;
         resultFormat.textContent = format.toUpperCase();
         showToast("Code decoded successfully! 🎉", "success");
+        setTimeout(() => {
+            resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
     }
 
     document.getElementById("copyDecodedBtn").addEventListener("click", () => {
