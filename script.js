@@ -871,19 +871,45 @@ function initScannerModal() {
     const cameraCanvas = document.getElementById("cameraCanvas");
     const cameraSelect = document.getElementById("cameraSourceSelect");
 
-    openBtn.addEventListener("click", () => {
+    function closeModal() {
+        modal.hidden = true;
+        modal.style.display = "none";
+        stopCamera();
+    }
+
+    function openModal() {
         modal.hidden = false;
+        modal.style.display = "flex";
+    }
+
+    // Ensure initial state is hidden
+    closeModal();
+
+    openBtn.addEventListener("click", () => {
+        openModal();
     });
 
-    closeBtn.addEventListener("click", () => {
-        modal.hidden = true;
-        stopCamera();
+    closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
     });
 
     modal.addEventListener("click", (e) => {
         if (e.target === modal) {
-            modal.hidden = true;
-            stopCamera();
+            closeModal();
+        }
+    });
+
+    // Global escape listener
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            if (!modal.hidden) closeModal();
+            const drawer = document.getElementById("historyDrawer");
+            if (drawer && !drawer.hidden) {
+                drawer.hidden = true;
+                drawer.style.display = "none";
+            }
         }
     });
 
@@ -1025,8 +1051,7 @@ function initScannerModal() {
 
     document.getElementById("loadIntoEditorBtn").addEventListener("click", () => {
         const val = resultText.value;
-        modal.hidden = true;
-        stopCamera();
+        closeModal();
 
         if (state.engine === "barcode") {
             document.getElementById("barcodeTextInput").value = val;
@@ -1055,14 +1080,32 @@ function initHistoryDrawer() {
     const clearBtn = document.getElementById("clearHistoryBtn");
     const countBadge = document.getElementById("historyCountBadge");
 
+    function closeDrawer() {
+        drawer.hidden = true;
+        drawer.style.display = "none";
+    }
+
+    function openDrawer() {
+        renderHistoryList();
+        drawer.hidden = false;
+        drawer.style.display = "flex";
+    }
+
+    // Ensure initial state is hidden
+    closeDrawer();
+
     updateHistoryBadge();
 
     historyBtn.addEventListener("click", () => {
-        renderHistoryList();
-        drawer.hidden = false;
+        openDrawer();
     });
 
-    closeBtn.addEventListener("click", () => drawer.hidden = true);
+    closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeDrawer();
+    });
+
     clearBtn.addEventListener("click", () => {
         localStorage.removeItem("qrcreate_history");
         renderHistoryList();
