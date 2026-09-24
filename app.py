@@ -36,7 +36,7 @@ except ImportError:
     BARCODE_AVAILABLE = False
 
 
-HOST = "127.0.0.1"
+HOST = "0.0.0.0"
 PORT = 8000
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -546,13 +546,22 @@ class QRHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    import socket
+    local_ip = "127.0.0.1"
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+
     print("=" * 60)
-    print("  🚀 QRCreate — Next-Gen QR & Barcode Studio (Local)")
+    print("  🚀 QRCreate — Next-Gen QR & Barcode Studio")
     print("=" * 60)
-    print(f"  URL: http://{HOST}:{PORT}")
-    print("  Features: Multi-style QR (Dots, Dashes, Rounded, Gradients),")
-    print("            1D Barcodes, Logos, Frames, Real-Time Contrast Audit")
-    print("  Press Ctrl+C to stop.")
+    print(f"  🖥️  Computer URL:  http://localhost:{PORT}")
+    print(f"  📱  Android Phone: http://{local_ip}:{PORT}")
+    print("  Features: Multi-style QR, Barcodes, Logos, PWA Mobile App")
     print("=" * 60)
 
     server = HTTPServer((HOST, PORT), QRHandler)
