@@ -6,7 +6,7 @@
 const state = {
     engine: "qr", // 'qr' | 'barcode'
     contentType: "url", // 'url'|'text'|'wifi'|'vcard'|'email'|'sms'|'upi'|'phone'|'geo'|'event'|'crypto'
-    drawer: "dots", // 'dots'|'dashes'|'vertical'|'rounded'|'gapped'|'square'
+    drawer: "square", // 'square'|'dots'|'dashes'|'vertical'|'rounded'|'gapped'
     fillColor: "#000000",
     gradColor: "#000000",
     backColor: "#ffffff",
@@ -258,7 +258,7 @@ function buildQrPayload(type) {
             if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
                 url = `https://${url}`;
             }
-            return url || "https://github.com/giteshkukreja19/QRCreate";
+            return url || "https://example.com";
         }
         case "text":
             return document.getElementById("textInput").value || "Welcome to QRCreate Studio!";
@@ -270,19 +270,20 @@ function buildQrPayload(type) {
             return `WIFI:T:${auth};S:${ssid};P:${auth === "nopass" ? "" : pwd};H:${hidden};;`;
         }
         case "vcard": {
-            const first = document.getElementById("vcardFirst").value || "Gitesh";
-            const last = document.getElementById("vcardLast").value || "Kukreja";
-            const phone = document.getElementById("vcardPhone").value || "+1234567890";
-            const email = document.getElementById("vcardEmail").value || "hello@example.com";
-            const org = document.getElementById("vcardOrg").value;
-            const title = document.getElementById("vcardTitle").value;
-            const url = document.getElementById("vcardUrl").value;
+            const first = document.getElementById("vcardFirst").value.trim();
+            const last = document.getElementById("vcardLast").value.trim();
+            const phone = document.getElementById("vcardPhone").value.trim();
+            const email = document.getElementById("vcardEmail").value.trim();
+            const org = document.getElementById("vcardOrg").value.trim();
+            const title = document.getElementById("vcardTitle").value.trim();
+            const url = document.getElementById("vcardUrl").value.trim();
 
+            const fullName = [first, last].filter(Boolean).join(" ");
             return [
                 "BEGIN:VCARD",
                 "VERSION:3.0",
-                `N:${last};${first};;;`,
-                `FN:${first} ${last}`,
+                (first || last) ? `N:${last};${first};;;` : "",
+                fullName ? `FN:${fullName}` : "",
                 phone ? `TEL;TYPE=CELL:${phone}` : "",
                 email ? `EMAIL:${email}` : "",
                 org ? `ORG:${org}` : "",
@@ -303,11 +304,13 @@ function buildQrPayload(type) {
             return `SMSTO:${phone}:${msg}`;
         }
         case "upi": {
-            const vpa = document.getElementById("upiVpa").value || "merchant@upi";
-            const name = encodeURIComponent(document.getElementById("upiName").value || "Merchant");
-            const amt = document.getElementById("upiAmount").value;
-            const note = encodeURIComponent(document.getElementById("upiNote").value || "");
-            let upiUrl = `upi://pay?pa=${vpa}&pn=${name}`;
+            const vpa = document.getElementById("upiVpa").value.trim() || "merchant@upi";
+            const rawName = document.getElementById("upiName").value.trim();
+            const name = rawName ? encodeURIComponent(rawName) : "";
+            const amt = document.getElementById("upiAmount").value.trim();
+            const note = encodeURIComponent(document.getElementById("upiNote").value.trim());
+            let upiUrl = `upi://pay?pa=${vpa}`;
+            if (name) upiUrl += `&pn=${name}`;
             if (amt) upiUrl += `&am=${amt}&cu=INR`;
             if (note) upiUrl += `&tn=${note}`;
             return upiUrl;
@@ -853,7 +856,7 @@ function initActionButtons() {
         state.gradColor = "#000000";
         state.backColor = "#ffffff";
         state.gradientType = "none";
-        state.drawer = "dots";
+        state.drawer = "square";
         state.frameStyle = "none";
         state.logoData = null;
         state.iconPreset = "none";
@@ -1218,3 +1221,32 @@ function escapeHtml(str) {
         '"': '&quot;'
     }[tag] || tag));
 }
+
+// Mobile Floating Jump Button Logic
+const floatingJumpBtn = document.getElementById("floatingJumpBtn");
+if (floatingJumpBtn) {
+    window.addEventListener("scroll", () => {
+        if (window.innerWidth <= 960) {
+            const previewCard = document.getElementById("artboardCard");
+            if (previewCard) {
+                const rect = previewCard.getBoundingClientRect();
+                // Show jump button when preview has scrolled out of view above
+                if (rect.bottom < 40) {
+                    floatingJumpBtn.removeAttribute("hidden");
+                } else {
+                    floatingJumpBtn.setAttribute("hidden", "");
+                }
+            }
+        } else {
+            floatingJumpBtn.setAttribute("hidden", "");
+        }
+    }, { passive: true });
+
+    floatingJumpBtn.addEventListener("click", () => {
+        const previewCard = document.getElementById("artboardCard") || document.getElementById("previewPanel");
+        if (previewCard) {
+            previewCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    });
+}
+
