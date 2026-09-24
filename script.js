@@ -73,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initScannerModal();
     initHistoryDrawer();
     initFormInputs();
+    initMobileAppEngine();
 
     // Initial code generation
     updatePayload();
@@ -248,6 +249,24 @@ function updatePayload() {
     }
 
     metaLength.textContent = `${state.currentPayload.length} chars`;
+
+    const mobileLiveTag = document.getElementById("mobileLiveTag");
+    if (mobileLiveTag) {
+        if (state.engine === "barcode") {
+            mobileLiveTag.textContent = `Barcode • ${state.barcodeStandard.toUpperCase()}`;
+        } else {
+            const labels = {
+                square: "■ Classic",
+                dots: "● Dots",
+                dashes: "━ Dashes",
+                vertical: "┃ Vertical",
+                rounded: "▢ Rounded",
+                gapped: "⊞ Gapped"
+            };
+            mobileLiveTag.textContent = `${labels[state.drawer] || state.drawer} • ${state.gradientType === 'none' ? 'Solid' : 'Gradient'}`;
+        }
+    }
+
     scheduleRender();
 }
 
@@ -762,6 +781,12 @@ function updatePreviewImage(blob) {
     state.currentObjectUrl = URL.createObjectURL(blob);
     mainCodeImage.src = state.currentObjectUrl;
     mainCodeImage.hidden = false;
+
+    // Update Mobile Live Thumbnail
+    const mobileThumbImg = document.getElementById("mobileThumbImg");
+    if (mobileThumbImg) {
+        mobileThumbImg.src = state.currentObjectUrl;
+    }
 }
 
 /* ==========================================================
@@ -1222,31 +1247,115 @@ function escapeHtml(str) {
     }[tag] || tag));
 }
 
-// Mobile Floating Jump Button Logic
-const floatingJumpBtn = document.getElementById("floatingJumpBtn");
-if (floatingJumpBtn) {
-    window.addEventListener("scroll", () => {
-        if (window.innerWidth <= 960) {
-            const previewCard = document.getElementById("artboardCard");
-            if (previewCard) {
-                const rect = previewCard.getBoundingClientRect();
-                // Show jump button when preview has scrolled out of view above
-                if (rect.bottom < 40) {
-                    floatingJumpBtn.removeAttribute("hidden");
-                } else {
-                    floatingJumpBtn.setAttribute("hidden", "");
-                }
-            }
-        } else {
-            floatingJumpBtn.setAttribute("hidden", "");
-        }
-    }, { passive: true });
+// ==========================================================
+// Mobile Application & PWA Engine
+// ==========================================================
+function initMobileAppEngine() {
+    // Default active tab on mobile: 'create' (Design)
+    document.body.setAttribute("data-active-tab", "create");
 
-    floatingJumpBtn.addEventListener("click", () => {
-        const previewCard = document.getElementById("artboardCard") || document.getElementById("previewPanel");
-        if (previewCard) {
-            previewCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    function setMobileTab(tab) {
+        if (tab === "scan") {
+            const scannerModal = document.getElementById("scannerModal");
+            if (scannerModal) {
+                scannerModal.removeAttribute("hidden");
+                // Switch to camera tab if supported
+                const cameraTab = document.querySelector('.scanner-tab[data-mode="camera"]');
+                if (cameraTab) cameraTab.click();
+            }
+            return;
+        }
+
+        if (tab === "recent") {
+            const historyDrawer = document.getElementById("historyDrawer");
+            if (historyDrawer) {
+                historyDrawer.removeAttribute("hidden");
+            }
+            return;
+        }
+
+        document.body.setAttribute("data-active-tab", tab);
+
+        // Update tab buttons
+        document.querySelectorAll(".mobile-tab-btn").forEach(btn => {
+            if (btn.getAttribute("data-tab") === tab) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+
+        // Smooth scroll to top
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Bottom Navigation Bar tabs
+    document.querySelectorAll(".mobile-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tab = btn.getAttribute("data-tab");
+            setMobileTab(tab);
+        });
+    });
+
+    // Mobile Live Mini Bar CTA -> Switches directly to Preview
+    const mobileViewPreviewBtn = document.getElementById("mobileViewPreviewBtn");
+    if (mobileViewPreviewBtn) {
+        mobileViewPreviewBtn.addEventListener("click", () => {
+            setMobileTab("preview");
+        });
+    }
+
+    // Mobile Back Button in Preview -> Switches back to Design
+    const mobileBackToEditBtn = document.getElementById("mobileBackToEditBtn");
+    if (mobileBackToEditBtn) {
+        mobileBackToEditBtn.addEventListener("click", () => {
+            setMobileTab("create");
+        });
+    }
+
+    // PWA Service Worker Registration
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/sw.js").catch(err => {
+                console.log("[PWA] ServiceWorker registration error: ", err);
+            });
+        });
+    }
+
+    // PWA Install Prompt handling
+    let deferredPrompt = null;
+    const pwaInstallBtn = document.getElementById("pwaInstallBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (pwaInstallBtn) {
+            pwaInstallBtn.removeAttribute("hidden");
         }
     });
+
+    if (pwaInstallBtn) {
+        pwaInstallBtn.addEventListener("click", async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === "accepted") {
+                    pwaInstallBtn.setAttribute("hidden", "");
+                    showToast("QRCreate app installed successfully!", "success");
+                }
+                deferredPrompt = null;
+            } else {
+                showToast("To install on iOS: Tap Share ➔ 'Add to Home Screen'");
+            }
+        });
+    }
+
+    window.addEventListener("appinstalled", () => {
+        if (pwaInstallBtn) {
+            pwaInstallBtn.setAttribute("hidden", "");
+        }
+        showToast("QRCreate is installed and ready on your home screen!", "success");
+    });
 }
+
 

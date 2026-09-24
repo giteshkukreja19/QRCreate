@@ -2,6 +2,7 @@ import json
 import base64
 import io
 import os
+import mimetypes
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
@@ -466,22 +467,36 @@ class QRHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
 
-        if parsed.path == "/":
+        if parsed.path in ("/", "/index.html"):
             self._serve_file("index.html", "text/html; charset=utf-8")
             return
-        elif parsed.path == "/style.css":
-            self._serve_file("style.css", "text/css; charset=utf-8")
-            return
-        elif parsed.path == "/script.js":
-            self._serve_file("script.js", "application/javascript; charset=utf-8")
-            return
-        elif parsed.path == "/qr" or parsed.path == "/api/generate":
+        elif parsed.path in ("/qr", "/api/generate"):
             params = parse_qs(parsed.query, keep_blank_values=True)
             config = {k: v[0] for k, v in params.items()}
             self._handle_generation(config)
             return
-        elif parsed.path == "/favicon.ico":
-            self._send(204, "image/x-icon", b"")
+
+        # Serve static file from BASE_DIR (manifest.json, sw.js, css, js, icons, etc.)
+        rel_path = parsed.path.lstrip("/")
+        file_path = (BASE_DIR / rel_path).resolve()
+        try:
+            if file_path.is_file() and (file_path == BASE_DIR or BASE_DIR in file_path.parents):
+                content_type, _ = mimetypes.guess_type(str(file_path))
+                if not content_type:
+                    content_type = "application/octet-stream"
+                if content_type.startswith("text/") or content_type in ("application/javascript", "application/json", "application/manifest+json", "image/svg+xml"):
+                    content_type += "; charset=utf-8"
+                self._serve_file(rel_path, content_type)
+                return
+        except Exception:
+            pass
+
+        if parsed.path == "/favicon.ico":
+            icon_path = BASE_DIR / "icons" / "icon-192.png"
+            if icon_path.exists():
+                self._serve_file("icons/icon-192.png", "image/png")
+            else:
+                self._send(204, "image/x-icon", b"")
             return
 
         self._send(404, "text/plain; charset=utf-8", "Not found")

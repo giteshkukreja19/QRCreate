@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QRCreate — Beautiful QR Codes & Barcodes</title>
     <meta name="description" content="A simple, fast, and private studio to design customized QR codes and barcodes right on your computer.">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="QRCreate">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -37,6 +44,10 @@
             </div>
 
             <div class="nav-actions">
+                <button id="pwaInstallBtn" class="btn-subtle pwa-install-btn" title="Install QRCreate on your device" type="button" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Install App</span>
+                </button>
                 <button id="scannerBtn" class="btn-subtle" title="Scan or decode a code" type="button">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                     <span>Scan code</span>
@@ -54,9 +65,25 @@
         </header>
 
         <!-- Main Workspace -->
-        <main class="studio-grid">
+        <main class="studio-grid" id="studioGrid">
             <!-- Left Panel: Controls & Options -->
-            <section class="controls-panel">
+            <section class="controls-panel" id="controlsPanel">
+                <!-- Mobile Live Mini Bar -->
+                <div class="mobile-live-bar" id="mobileLiveBar">
+                    <div class="mobile-live-left">
+                        <div class="mobile-live-thumb-box">
+                            <img id="mobileThumbImg" alt="Mini code preview" class="mobile-live-thumb">
+                        </div>
+                        <div class="mobile-live-info">
+                            <span class="mobile-live-title" id="mobileLiveTitle">Live Preview Ready</span>
+                            <span class="mobile-live-tag" id="mobileLiveTag">■ Classic • Solid</span>
+                        </div>
+                    </div>
+                    <button id="mobileViewPreviewBtn" class="mobile-live-cta" type="button">
+                        <span>Preview</span>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
                 <!-- Mode Switcher: QR Code vs Barcode -->
                 <div class="card card-compact">
                     <div class="segmented-control">
@@ -593,6 +620,12 @@
             <!-- Right Panel: Live Artboard & Export -->
             <aside class="preview-panel" id="previewPanel">
                 <div class="artboard-card" id="artboardCard">
+                    <!-- Mobile Back Navigation Button -->
+                    <button id="mobileBackToEditBtn" class="mobile-back-btn" type="button">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        <span>Back to Design</span>
+                    </button>
+
                     <div class="artboard-header">
                         <div class="artboard-title-group">
                             <span class="artboard-heading">Live Preview</span>
@@ -778,11 +811,28 @@
         <!-- Toasts -->
         <div id="toastContainer" class="toast-container"></div>
 
-        <!-- Mobile Floating Jump Button -->
-        <button id="floatingJumpBtn" class="floating-preview-btn" type="button" aria-label="Jump to Preview and Download" hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-            <span>View &amp; Download</span>
-        </button>
+        <!-- Mobile Bottom App Bar -->
+        <nav class="mobile-app-nav" id="mobileAppNav" aria-label="Mobile Navigation">
+            <button class="mobile-tab-btn active" data-tab="create" type="button" id="tabBtnCreate">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span>Design</span>
+            </button>
+            <button class="mobile-tab-btn" data-tab="preview" type="button" id="tabBtnPreview">
+                <div class="nav-icon-badge-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                    <span class="nav-dot-indicator"></span>
+                </div>
+                <span>Preview</span>
+            </button>
+            <button class="mobile-tab-btn" data-tab="scan" type="button" id="tabBtnScan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span>Scan</span>
+            </button>
+            <button class="mobile-tab-btn" data-tab="recent" type="button" id="tabBtnRecent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>Recent</span>
+            </button>
+        </nav>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
