@@ -399,7 +399,11 @@
 
                     <!-- Preset Palette Chips -->
                     <div class="palette-chips">
-                        <button class="palette-chip active" data-fill="#18181b" data-grad="#4f46e5" data-back="#ffffff" data-gradient="radial" type="button" title="Classic Ink">
+                        <button class="palette-chip active" data-fill="#000000" data-grad="#000000" data-back="#ffffff" data-gradient="none" type="button" title="Black & White">
+                            <span class="color-dot" style="background: #000000;"></span>
+                            <span>Black & White</span>
+                        </button>
+                        <button class="palette-chip" data-fill="#18181b" data-grad="#4f46e5" data-back="#ffffff" data-gradient="radial" type="button" title="Classic Ink">
                             <span class="color-dot" style="background: #18181b;"></span>
                             <span>Classic Ink</span>
                         </button>
@@ -419,10 +423,6 @@
                             <span class="color-dot" style="background: linear-gradient(135deg, #4c1d95, #a855f7);"></span>
                             <span>Violet</span>
                         </button>
-                        <button class="palette-chip" data-fill="#f4f4f5" data-grad="#a1a1aa" data-back="#18181b" data-gradient="none" type="button" title="Dark Slate">
-                            <span class="color-dot" style="background: #18181b; border: 1px solid #71717a;"></span>
-                            <span>Dark Slate</span>
-                        </button>
                     </div>
 
                     <!-- Custom Color Pickers -->
@@ -430,16 +430,16 @@
                         <div class="color-field">
                             <label for="colorFill">Main color</label>
                             <div class="color-box">
-                                <input type="color" id="colorFill" value="#18181b">
-                                <input type="text" id="colorFillHex" value="#18181b" class="hex-text" maxlength="7">
+                                <input type="color" id="colorFill" value="#000000">
+                                <input type="text" id="colorFillHex" value="#000000" class="hex-text" maxlength="7">
                             </div>
                         </div>
 
                         <div class="color-field" id="gradientColorGroup">
                             <label for="colorGrad">Gradient blend</label>
                             <div class="color-box">
-                                <input type="color" id="colorGrad" value="#4f46e5">
-                                <input type="text" id="colorGradHex" value="#4f46e5" class="hex-text" maxlength="7">
+                                <input type="color" id="colorGrad" value="#000000">
+                                <input type="text" id="colorGradHex" value="#000000" class="hex-text" maxlength="7">
                             </div>
                         </div>
 
@@ -456,10 +456,10 @@
                     <div class="field mt-3" id="gradientSelectorGroup">
                         <label>Gradient style</label>
                         <div class="segmented-control segmented-sm">
-                            <button class="pill-option active" data-gradient="radial" type="button">Radial soft</button>
+                            <button class="pill-option active" data-gradient="none" type="button">Solid</button>
+                            <button class="pill-option" data-gradient="radial" type="button">Radial soft</button>
                             <button class="pill-option" data-gradient="horizontal" type="button">Horizontal (→)</button>
                             <button class="pill-option" data-gradient="vertical" type="button">Vertical (↓)</button>
-                            <button class="pill-option" data-gradient="none" type="button">Solid</button>
                         </div>
                     </div>
                 </div>

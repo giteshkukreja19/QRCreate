@@ -7,10 +7,10 @@ const state = {
     engine: "qr", // 'qr' | 'barcode'
     contentType: "url", // 'url'|'text'|'wifi'|'vcard'|'email'|'sms'|'upi'|'phone'|'geo'|'event'|'crypto'
     drawer: "dots", // 'dots'|'dashes'|'vertical'|'rounded'|'gapped'|'square'
-    fillColor: "#18181b",
-    gradColor: "#4f46e5",
+    fillColor: "#000000",
+    gradColor: "#000000",
     backColor: "#ffffff",
-    gradientType: "radial", // 'none'|'radial'|'horizontal'|'vertical'
+    gradientType: "none", // 'none'|'radial'|'horizontal'|'vertical'
     iconPreset: "none",
     logoData: null,
     logoSize: 0.22,
@@ -511,11 +511,23 @@ function initLogoUpload() {
                 dropContent.hidden = false;
             } else if (PRESET_ICONS[state.iconPreset]) {
                 const svgString = PRESET_ICONS[state.iconPreset];
-                state.logoData = "data:image/svg+xml;base64," + btoa(svgString);
-                logoThumb.src = state.logoData;
-                logoFileName.textContent = `${state.iconPreset.toUpperCase()} icon`;
-                previewContainer.hidden = false;
-                dropContent.hidden = true;
+                // Rasterize SVG to PNG so Python PIL can open it without error
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = 160;
+                    canvas.height = 160;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, 160, 160);
+                    state.logoData = canvas.toDataURL("image/png");
+                    logoThumb.src = state.logoData;
+                    logoFileName.textContent = `${state.iconPreset.toUpperCase()} icon`;
+                    previewContainer.hidden = false;
+                    dropContent.hidden = true;
+                    scheduleRender();
+                };
+                img.src = "data:image/svg+xml;base64," + btoa(svgString);
+                return;
             }
             scheduleRender();
         });
@@ -837,10 +849,10 @@ function initActionButtons() {
 
     // Reset Defaults
     document.getElementById("resetDefaultsBtn").addEventListener("click", () => {
-        state.fillColor = "#0f172a";
-        state.gradColor = "#2563eb";
+        state.fillColor = "#000000";
+        state.gradColor = "#000000";
         state.backColor = "#ffffff";
-        state.gradientType = "radial";
+        state.gradientType = "none";
         state.drawer = "dots";
         state.frameStyle = "none";
         state.logoData = null;

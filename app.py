@@ -144,11 +144,11 @@ def generate_qr_image(config):
     drawer_cls = DRAWER_MAP.get(drawer_key, SquareModuleDrawer)
     drawer_instance = drawer_cls()
 
-    fill_rgb = parse_hex_color(config.get("fill_color", "#0f172a"), (15, 23, 42))
+    fill_rgb = parse_hex_color(config.get("fill_color", "#000000"), (0, 0, 0))
     back_rgb = parse_hex_color(config.get("back_color", "#ffffff"), (255, 255, 255))
 
     gradient_type = config.get("gradient_type", "none").lower()
-    grad_color_rgb = parse_hex_color(config.get("gradient_color", "#3b82f6"), (59, 130, 246))
+    grad_color_rgb = parse_hex_color(config.get("gradient_color", "#000000"), (0, 0, 0))
 
     # Apply Color Mask
     if gradient_type == "radial":
@@ -261,7 +261,7 @@ def generate_barcode_image(config):
         barcode_format = "code128"
 
     out_format = config.get("format", "png").lower()
-    fill_hex = config.get("fill_color", "#0f172a")
+    fill_hex = config.get("fill_color", "#000000")
     back_hex = config.get("back_color", "#ffffff")
     show_text = bool(config.get("show_text", True))
 
