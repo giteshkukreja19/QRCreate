@@ -7,8 +7,8 @@ const state = {
     engine: "qr", // 'qr' | 'barcode'
     contentType: "url", // 'url'|'text'|'wifi'|'vcard'|'email'|'sms'|'upi'|'phone'|'geo'|'event'|'crypto'
     drawer: "dots", // 'dots'|'dashes'|'vertical'|'rounded'|'gapped'|'square'
-    fillColor: "#0f172a",
-    gradColor: "#2563eb",
+    fillColor: "#18181b",
+    gradColor: "#4f46e5",
     backColor: "#ffffff",
     gradientType: "radial", // 'none'|'radial'|'horizontal'|'vertical'
     iconPreset: "none",
@@ -17,7 +17,7 @@ const state = {
     logoPad: true,
     frameStyle: "none", // 'none'|'banner-bottom'|'banner-top'|'badge'|'polaroid'
     frameText: "SCAN ME",
-    frameBg: "#0f172a",
+    frameBg: "#18181b",
     errorCorrection: "H",
     border: 3,
     barcodeStandard: "code128",
@@ -86,8 +86,7 @@ function initTheme() {
     const sunIcon = document.getElementById("themeIconSun");
     const moonIcon = document.getElementById("themeIconMoon");
 
-    const savedTheme = localStorage.getItem("qrcreate_theme") || 
-        (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    const savedTheme = localStorage.getItem("qrcreate_theme") || "light";
 
     setTheme(savedTheme);
 
@@ -468,15 +467,18 @@ function evaluateContrast() {
         if (ratio >= 7.0) {
             contrastMeter.classList.add("scannability-excellent");
             contrastIcon.textContent = "🟢";
-            contrastTitle.textContent = "Excellent Scannability";
+            contrastTitle.textContent = "Great Contrast";
+            contrastRatio.textContent = `Contrast ${rounded}:1 · Ready for all cameras`;
         } else if (ratio >= 3.0) {
             contrastMeter.classList.add("scannability-warning");
             contrastIcon.textContent = "🟡";
-            contrastTitle.textContent = "Moderate Scannability";
+            contrastTitle.textContent = "Moderate Contrast";
+            contrastRatio.textContent = `Contrast ${rounded}:1 · Best in good lighting`;
         } else {
             contrastMeter.classList.add("scannability-poor");
             contrastIcon.textContent = "🔴";
-            contrastTitle.textContent = "Low Contrast Warning";
+            contrastTitle.textContent = "Low Contrast";
+            contrastRatio.textContent = `Contrast ${rounded}:1 · Might fail camera scan`;
         }
     } catch {
         // Fallback
