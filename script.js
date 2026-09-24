@@ -924,6 +924,10 @@ function initScannerModal() {
         modal.style.display = "flex";
     }
 
+    // Expose globally for bottom nav
+    window.openScannerModal = openModal;
+    window.closeScannerModal = closeModal;
+
     // Ensure initial state is hidden
     closeModal();
 
@@ -972,7 +976,7 @@ function initScannerModal() {
         });
     });
 
-    // File Dropzone
+    // File Dropzone & Direct Camera Input
     dropzone.addEventListener("click", () => fileInput.click());
     dropzone.addEventListener("dragover", (e) => e.preventDefault());
     dropzone.addEventListener("drop", (e) => {
@@ -982,6 +986,18 @@ function initScannerModal() {
     fileInput.addEventListener("change", (e) => {
         if (e.target.files.length) decodeImageFile(e.target.files[0]);
     });
+
+    // Direct Mobile Camera Capture Button (Works on all mobile devices & HTTP/HTTPS)
+    const scanCameraDirectBtn = document.getElementById("scanCameraDirectBtn");
+    const scanCameraDirectInput = document.getElementById("scanCameraDirectInput");
+    if (scanCameraDirectBtn && scanCameraDirectInput) {
+        scanCameraDirectBtn.addEventListener("click", () => {
+            scanCameraDirectInput.click();
+        });
+        scanCameraDirectInput.addEventListener("change", (e) => {
+            if (e.target.files.length) decodeImageFile(e.target.files[0]);
+        });
+    }
 
     function decodeImageFile(file) {
         const reader = new FileReader();
@@ -1026,6 +1042,12 @@ function initScannerModal() {
 
     // Camera handling
     async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showToast("Live webcam requires HTTPS. Please take a photo directly!", "info");
+            if (scanCameraDirectInput) scanCameraDirectInput.click();
+            return;
+        }
+
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = devices.filter(d => d.kind === "videoinput");
@@ -1041,7 +1063,8 @@ function initScannerModal() {
             requestAnimationFrame(scanCameraFrame);
         } catch (err) {
             console.error("Camera access error:", err);
-            showToast("Camera access denied or unavailable", "error");
+            showToast("Camera access unavailable. Taking photo directly...", "info");
+            if (scanCameraDirectInput) scanCameraDirectInput.click();
         }
     }
 
@@ -1132,6 +1155,10 @@ function initHistoryDrawer() {
         drawer.hidden = false;
         drawer.style.display = "flex";
     }
+
+    // Expose globally for mobile bottom nav
+    window.openHistoryDrawer = openDrawer;
+    window.closeHistoryDrawer = closeDrawer;
 
     // Ensure initial state is hidden
     closeDrawer();
@@ -1256,20 +1283,27 @@ function initMobileAppEngine() {
 
     function setMobileTab(tab) {
         if (tab === "scan") {
-            const scannerModal = document.getElementById("scannerModal");
-            if (scannerModal) {
-                scannerModal.removeAttribute("hidden");
-                // Switch to camera tab if supported
-                const cameraTab = document.querySelector('.scanner-tab[data-mode="camera"]');
-                if (cameraTab) cameraTab.click();
+            if (window.openScannerModal) {
+                window.openScannerModal();
+            } else {
+                const scannerModal = document.getElementById("scannerModal");
+                if (scannerModal) {
+                    scannerModal.hidden = false;
+                    scannerModal.style.display = "flex";
+                }
             }
             return;
         }
 
         if (tab === "recent") {
-            const historyDrawer = document.getElementById("historyDrawer");
-            if (historyDrawer) {
-                historyDrawer.removeAttribute("hidden");
+            if (window.openHistoryDrawer) {
+                window.openHistoryDrawer();
+            } else {
+                const historyDrawer = document.getElementById("historyDrawer");
+                if (historyDrawer) {
+                    historyDrawer.hidden = false;
+                    historyDrawer.style.display = "flex";
+                }
             }
             return;
         }
