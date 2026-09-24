@@ -1117,11 +1117,136 @@ function initScannerModal() {
         scanAnimationId = requestAnimationFrame(scanCameraFrame);
     }
 
+    function renderSmartActions(rawText) {
+        const container = document.getElementById("scanSmartActions");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const text = (rawText || "").trim();
+        if (!text) return;
+
+        // 1. URL / Website Link -> Redirect / Open Link
+        let url = null;
+        if (/^https?:\/\//i.test(text)) {
+            url = text;
+        } else if (/^(www\.[a-z0-9\-]+(\.[a-z]{2,})+)/i.test(text)) {
+            url = "https://" + text;
+        }
+
+        if (url) {
+            const btn = document.createElement("a");
+            btn.className = "btn-smart-action";
+            btn.href = url;
+            btn.target = "_blank";
+            btn.rel = "noopener noreferrer";
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Open Link in Browser ↗</span>
+            `;
+            container.appendChild(btn);
+            return;
+        }
+
+        // 2. Contact Card (vCard or MeCard) -> Save Contact (.vcf)
+        const isVCard = /BEGIN:VCARD/i.test(text);
+        const isMeCard = /^MECARD:/i.test(text);
+
+        if (isVCard || isMeCard) {
+            let vcfContent = text;
+            let contactName = "Contact";
+
+            if (isVCard) {
+                const matchName = text.match(/FN:(.+)/i) || text.match(/N:(.+)/i);
+                if (matchName && matchName[1]) contactName = matchName[1].trim().replace(/;/g, " ");
+            } else if (isMeCard) {
+                const nameMatch = text.match(/N:([^;]+)/i);
+                const telMatch = text.match(/TEL:([^;]+)/i);
+                const emailMatch = text.match(/EMAIL:([^;]+)/i);
+                const noteMatch = text.match(/NOTE:([^;]+)/i);
+
+                contactName = nameMatch ? nameMatch[1].trim() : "Contact";
+                vcfContent = [
+                    "BEGIN:VCARD",
+                    "VERSION:3.0",
+                    `FN:${contactName}`,
+                    telMatch ? `TEL;TYPE=CELL:${telMatch[1].trim()}` : "",
+                    emailMatch ? `EMAIL:${emailMatch[1].trim()}` : "",
+                    noteMatch ? `NOTE:${noteMatch[1].trim()}` : "",
+                    "END:VCARD"
+                ].filter(Boolean).join("\r\n");
+            }
+
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn-smart-action";
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M19 11v6m3-3h-6"/></svg>
+                <span>Save Contact (${escapeHtml(contactName)}) 👤</span>
+            `;
+
+            btn.addEventListener("click", () => {
+                const blob = new Blob([vcfContent], { type: "text/vcard;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `${contactName.replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                showToast(`Saving ${contactName} to contacts...`, "success");
+            });
+
+            container.appendChild(btn);
+            return;
+        }
+
+        // 3. Phone Call
+        if (/^tel:/i.test(text) || /^\+?[0-9\s\-()]{7,20}$/.test(text)) {
+            const phoneNum = text.replace(/^tel:/i, "").trim();
+            const btn = document.createElement("a");
+            btn.className = "btn-smart-action";
+            btn.href = `tel:${phoneNum}`;
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>Call Phone: ${escapeHtml(phoneNum)} 📞</span>
+            `;
+            container.appendChild(btn);
+            return;
+        }
+
+        // 4. Email
+        if (/^mailto:/i.test(text) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+            const mail = text.replace(/^mailto:/i, "").trim();
+            const btn = document.createElement("a");
+            btn.className = "btn-smart-action";
+            btn.href = `mailto:${mail}`;
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span>Send Email: ${escapeHtml(mail)} ✉️</span>
+            `;
+            container.appendChild(btn);
+            return;
+        }
+
+        // 5. UPI Payment
+        if (/^upi:\/\/pay/i.test(text)) {
+            const btn = document.createElement("a");
+            btn.className = "btn-smart-action";
+            btn.href = text;
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Pay via UPI App 💸</span>
+            `;
+            container.appendChild(btn);
+            return;
+        }
+    }
+
     function displayScanResult(data, format) {
         resultBox.hidden = false;
         resultBox.style.display = "block";
         resultText.value = data;
         resultFormat.textContent = format.toUpperCase();
+        renderSmartActions(data);
         showToast("Code decoded successfully! 🎉", "success");
         setTimeout(() => {
             resultBox.scrollIntoView({ behavior: "smooth", block: "center" });

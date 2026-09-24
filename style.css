@@ -1313,6 +1313,49 @@ input[type="range"] {
     color: var(--text-muted);
 }
 
+/* Smart Context Actions in Scanner */
+.scan-smart-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-smart-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 3px 10px rgba(79, 70, 229, 0.28);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #ffffff;
+    box-sizing: border-box;
+}
+
+.btn-smart-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(79, 70, 229, 0.38);
+    color: #ffffff;
+}
+
+.btn-smart-action:active {
+    transform: translateY(0);
+}
+
+.btn-smart-action svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
 /* History Drawer */
 .drawer {
     position: fixed;

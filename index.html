@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=2.3">
+    <link rel="stylesheet" href="/style.css?v=2.4">
 </head>
 <body>
     <div class="app-layout">
@@ -787,6 +787,10 @@
                             <span id="scanResultFormat" class="format-tag">QR_CODE</span>
                         </div>
                         <textarea id="scanResultText" readonly rows="3"></textarea>
+
+                        <!-- Smart Context Actions (Open Link, Save Contact, etc.) -->
+                        <div id="scanSmartActions" class="scan-smart-actions mt-2"></div>
+
                         <div class="grid-2 mt-2">
                             <button id="copyDecodedBtn" class="btn-secondary" type="button">Copy text</button>
                             <button id="loadIntoEditorBtn" class="btn-primary" type="button">Load into QRCreate</button>
@@ -845,6 +849,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="/script.js?v=2.3"></script>
+    <script src="/script.js?v=2.4"></script>
 </body>
 </html>
