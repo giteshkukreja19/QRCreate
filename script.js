@@ -1283,7 +1283,10 @@ function initMobileAppEngine() {
 
     function setMobileTab(tab) {
         if (tab === "scan") {
-            if (window.openScannerModal) {
+            const scannerBtn = document.getElementById("scannerBtn");
+            if (scannerBtn) {
+                scannerBtn.click();
+            } else if (window.openScannerModal) {
                 window.openScannerModal();
             } else {
                 const scannerModal = document.getElementById("scannerModal");
@@ -1296,7 +1299,10 @@ function initMobileAppEngine() {
         }
 
         if (tab === "recent") {
-            if (window.openHistoryDrawer) {
+            const historyBtn = document.getElementById("historyBtn");
+            if (historyBtn) {
+                historyBtn.click();
+            } else if (window.openHistoryDrawer) {
                 window.openHistoryDrawer();
             } else {
                 const historyDrawer = document.getElementById("historyDrawer");
@@ -1325,7 +1331,9 @@ function initMobileAppEngine() {
 
     // Bottom Navigation Bar tabs
     document.querySelectorAll(".mobile-tab-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const tab = btn.getAttribute("data-tab");
             setMobileTab(tab);
         });
